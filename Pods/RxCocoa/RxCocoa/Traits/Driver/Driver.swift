@@ -6,7 +6,10 @@
 //  Copyright © 2016 Krunoslav Zaher. All rights reserved.
 //
 
-import RxSwift
+#if !RX_NO_MODULE
+    import RxSwift
+#endif
+
 
 /**
  Trait that represents observable sequence with following properties:
@@ -35,18 +38,18 @@ import RxSwift
 
  To find out more about traits and how to use them, please visit `Documentation/Traits.md`.
  */
-public typealias Driver<Element> = SharedSequence<DriverSharingStrategy, Element>
+public typealias Driver<E> = SharedSequence<DriverSharingStrategy, E>
 
 public struct DriverSharingStrategy: SharingStrategyProtocol {
     public static var scheduler: SchedulerType { return SharingScheduler.make() }
-    public static func share<Element>(_ source: Observable<Element>) -> Observable<Element> {
+    public static func share<E>(_ source: Observable<E>) -> Observable<E> {
         return source.share(replay: 1, scope: .whileConnected)
     }
 }
 
 extension SharedSequenceConvertibleType where SharingStrategy == DriverSharingStrategy {
     /// Adds `asDriver` to `SharingSequence` with `DriverSharingStrategy`.
-    public func asDriver() -> Driver<Element> {
+    public func asDriver() -> Driver<E> {
         return self.asSharedSequence()
     }
 }

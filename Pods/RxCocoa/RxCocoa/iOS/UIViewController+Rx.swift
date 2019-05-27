@@ -7,9 +7,11 @@
 //
 
 #if os(iOS) || os(tvOS)
+  import UIKit
 
-    import UIKit
-    import RxSwift
+#if !RX_NO_MODULE
+  import RxSwift
+#endif
 
     extension Reactive where Base: UIViewController {
 

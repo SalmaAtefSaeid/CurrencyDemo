@@ -7,9 +7,11 @@
 //
 
 #if os(iOS)
-
-import RxSwift
-import UIKit
+   
+#if !RX_NO_MODULE
+   import RxSwift
+#endif
+   import UIKit
 
 extension UISearchController: HasDelegate {
     public typealias Delegate = UISearchControllerDelegate

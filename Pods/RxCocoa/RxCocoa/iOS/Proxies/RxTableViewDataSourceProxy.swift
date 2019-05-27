@@ -9,15 +9,17 @@
 #if os(iOS) || os(tvOS)
 
 import UIKit
+#if !RX_NO_MODULE
 import RxSwift
+#endif
     
 extension UITableView: HasDataSource {
     public typealias DataSource = UITableViewDataSource
 }
 
-fileprivate let tableViewDataSourceNotSet = TableViewDataSourceNotSet()
+let tableViewDataSourceNotSet = TableViewDataSourceNotSet()
 
-fileprivate final class TableViewDataSourceNotSet
+final class TableViewDataSourceNotSet
     : NSObject
     , UITableViewDataSource {
 

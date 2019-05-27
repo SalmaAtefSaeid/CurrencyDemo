@@ -9,7 +9,9 @@
 #if os(iOS) || os(tvOS)
 
 import UIKit
+#if !RX_NO_MODULE
 import RxSwift
+#endif
 
 fileprivate var rx_tap_key: UInt8 = 0
 
@@ -69,7 +71,7 @@ final class BarButtonItemTarget: RxTarget {
     override func dispose() {
         super.dispose()
 #if DEBUG
-        MainScheduler.ensureRunningOnMainThread()
+        MainScheduler.ensureExecutingOnScheduler()
 #endif
         
         barButtonItem?.target = nil

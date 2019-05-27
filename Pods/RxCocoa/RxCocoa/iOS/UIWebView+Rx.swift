@@ -8,8 +8,11 @@
 
 #if os(iOS)
 
-    import UIKit
-    import RxSwift
+import UIKit
+
+#if !RX_NO_MODULE
+import RxSwift
+#endif
 
     extension Reactive where Base: UIWebView {
 
@@ -23,14 +26,14 @@
         public var didStartLoad: Observable<Void> {
             return delegate
                 .methodInvoked(#selector(UIWebViewDelegate.webViewDidStartLoad(_:)))
-                .map { _ in }
+                .map {_ in}
         }
 
         /// Reactive wrapper for `delegate` message.
         public var didFinishLoad: Observable<Void> {
             return delegate
                 .methodInvoked(#selector(UIWebViewDelegate.webViewDidFinishLoad(_:)))
-                .map { _ in }
+                .map {_ in}
         }
         
         /// Reactive wrapper for `delegate` message.

@@ -8,7 +8,9 @@
 
 #if os(iOS)
     
+#if !RX_NO_MODULE
     import RxSwift
+#endif
     import UIKit
 
     extension Reactive where Base: UIPickerView {
@@ -65,7 +67,7 @@
          - parameter modelType: Type of a Model which bound to the dataSource
          */
         public func modelSelected<T>(_ modelType: T.Type) -> ControlEvent<[T]> {
-            let source = itemSelected.flatMap { [weak view = self.base as UIPickerView] _, component -> Observable<[T]> in
+            let source = itemSelected.flatMap { [weak view = self.base as UIPickerView] (_, component) -> Observable<[T]> in
                 guard let view = view else {
                     return Observable.empty()
                 }
@@ -104,12 +106,12 @@
          
          */
         
-        public func itemTitles<Sequence: Swift.Sequence, Source: ObservableType>
-            (_ source: Source)
-            -> (_ titleForRow: @escaping (Int, Sequence.Element) -> String?)
-            -> Disposable where Source.Element == Sequence {
+        public func itemTitles<S: Sequence, O: ObservableType>
+            (_ source: O)
+            -> (_ titleForRow: @escaping (Int, S.Iterator.Element) -> String?)
+            -> Disposable where O.E == S  {
                 return { titleForRow in
-                    let adapter = RxStringPickerViewAdapter<Sequence>(titleForRow: titleForRow)
+                    let adapter = RxStringPickerViewAdapter<S>(titleForRow: titleForRow)
                     return self.items(adapter: adapter)(source)
                 }
         }
@@ -137,12 +139,12 @@
         
          */
 
-        public func itemAttributedTitles<Sequence: Swift.Sequence, Source: ObservableType>
-            (_ source: Source)
-            -> (_ attributedTitleForRow: @escaping (Int, Sequence.Element) -> NSAttributedString?)
-            -> Disposable where Source.Element == Sequence {
+        public func itemAttributedTitles<S: Sequence, O: ObservableType>
+            (_ source: O)
+            -> (_ attributedTitleForRow: @escaping (Int, S.Iterator.Element) -> NSAttributedString?)
+            -> Disposable where O.E == S  {
                 return { attributedTitleForRow in
-                    let adapter = RxAttributedStringPickerViewAdapter<Sequence>(attributedTitleForRow: attributedTitleForRow)
+                    let adapter = RxAttributedStringPickerViewAdapter<S>(attributedTitleForRow: attributedTitleForRow)
                     return self.items(adapter: adapter)(source)
                 }
         }
@@ -176,12 +178,12 @@
          
          */
 
-        public func items<Sequence: Swift.Sequence, Source: ObservableType>
-            (_ source: Source)
-            -> (_ viewForRow: @escaping (Int, Sequence.Element, UIView?) -> UIView)
-            -> Disposable where Source.Element == Sequence {
+        public func items<S: Sequence, O: ObservableType>
+            (_ source: O)
+            -> (_ viewForRow: @escaping (Int, S.Iterator.Element, UIView?) -> UIView)
+            -> Disposable where O.E == S  {
                 return { viewForRow in
-                    let adapter = RxPickerViewAdapter<Sequence>(viewForRow: viewForRow)
+                    let adapter = RxPickerViewAdapter<S>(viewForRow: viewForRow)
                     return self.items(adapter: adapter)(source)
                 }
         }
@@ -197,10 +199,10 @@
          - parameter source: Observable sequence of items.
          - returns: Disposable object that can be used to unbind.
          */
-        public func items<Source: ObservableType,
+        public func items<O: ObservableType,
                           Adapter: RxPickerViewDataSourceType & UIPickerViewDataSource & UIPickerViewDelegate>(adapter: Adapter)
-            -> (_ source: Source)
-            -> Disposable where Source.Element == Adapter.Element {
+            -> (_ source: O)
+            -> Disposable where O.E == Adapter.Element {
                 return { source in
                     let delegateSubscription = self.setDelegate(adapter)
                     let dataSourceSubscription = source.subscribeProxyDataSource(ofObject: self.base, dataSource: adapter, retainDataSource: true, binding: { [weak pickerView = self.base] (_: RxPickerViewDataSourceProxy, event) in

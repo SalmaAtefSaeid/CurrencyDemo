@@ -9,7 +9,9 @@
 #if os(iOS) || os(tvOS)
 
     import UIKit
-    import RxSwift
+    #if !RX_NO_MODULE
+        import RxSwift
+    #endif
 
     extension UINavigationController: HasDelegate {
         public typealias Delegate = UINavigationControllerDelegate

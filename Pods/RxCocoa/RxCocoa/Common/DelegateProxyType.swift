@@ -11,7 +11,9 @@
     import func Foundation.objc_getAssociatedObject
     import func Foundation.objc_setAssociatedObject
 
-    import RxSwift
+    #if !RX_NO_MODULE
+        import RxSwift
+    #endif
 
 /**
 `DelegateProxyType` protocol enables using both normal delegates and Rx observable sequences with
@@ -72,7 +74,7 @@ Since RxCocoa needs to automagically create those Proxys and because views that 
 */
 public protocol DelegateProxyType: class {
     associatedtype ParentObject: AnyObject
-    associatedtype Delegate
+    associatedtype Delegate: AnyObject
     
     /// It is require that enumerate call `register` of the extended DelegateProxy subclasses here.
     static func registerKnownImplementations()
@@ -128,25 +130,6 @@ extension DelegateProxyType {
     }
 }
 
-// workaround of Delegate: class
-extension DelegateProxyType {
-    static func _currentDelegate(for object: ParentObject) -> AnyObject? {
-        return currentDelegate(for: object).map { $0 as AnyObject }
-    }
-    
-    static func _setCurrentDelegate(_ delegate: AnyObject?, to object: ParentObject) {
-        return setCurrentDelegate(castOptionalOrFatalError(delegate), to: object)
-    }
-    
-    func _forwardToDelegate() -> AnyObject? {
-        return self.forwardToDelegate().map { $0 as AnyObject }
-    }
-    
-    func _setForwardToDelegate(_ forwardToDelegate: AnyObject?, retainDelegate: Bool) {
-        return self.setForwardToDelegate(castOptionalOrFatalError(forwardToDelegate), retainDelegate: retainDelegate)
-    }
-}
-
 extension DelegateProxyType {
 
     /// Store DelegateProxy subclass to factory.
@@ -181,11 +164,12 @@ extension DelegateProxyType {
     ///         }
     ///     }
     public static func proxy(for object: ParentObject) -> Self {
-        MainScheduler.ensureRunningOnMainThread()
+        MainScheduler.ensureExecutingOnScheduler()
 
         let maybeProxy = self.assignedProxy(for: object)
 
-        let proxy: AnyObject
+        // Type is ideally be `(Self & Delegate)`, but Swift 3.0 doesn't support it.
+        let proxy: Delegate
         if let existingProxy = maybeProxy {
             proxy = existingProxy
         }
@@ -194,15 +178,15 @@ extension DelegateProxyType {
             self.assignProxy(proxy, toObject: object)
             assert(self.assignedProxy(for: object) === proxy)
         }
-        let currentDelegate = self._currentDelegate(for: object)
+        let currentDelegate = self.currentDelegate(for: object)
         let delegateProxy: Self = castOrFatalError(proxy)
 
         if currentDelegate !== delegateProxy {
-            delegateProxy._setForwardToDelegate(currentDelegate, retainDelegate: false)
-            assert(delegateProxy._forwardToDelegate() === currentDelegate)
-            self._setCurrentDelegate(proxy, to: object)
-            assert(self._currentDelegate(for: object) === proxy)
-            assert(delegateProxy._forwardToDelegate() === currentDelegate)
+            delegateProxy.setForwardToDelegate(currentDelegate, retainDelegate: false)
+            assert(delegateProxy.forwardToDelegate() === currentDelegate)
+            self.setCurrentDelegate(proxy, to: object)
+            assert(self.currentDelegate(for: object) === proxy)
+            assert(delegateProxy.forwardToDelegate() === currentDelegate)
         }
 
         return delegateProxy
@@ -216,23 +200,23 @@ extension DelegateProxyType {
     /// - parameter onProxyForObject: Object that has `delegate` property.
     /// - returns: Disposable object that can be used to clear forward delegate.
     public static func installForwardDelegate(_ forwardDelegate: Delegate, retainDelegate: Bool, onProxyForObject object: ParentObject) -> Disposable {
-        weak var weakForwardDelegate: AnyObject? = forwardDelegate as AnyObject
+        weak var weakForwardDelegate: AnyObject? = forwardDelegate
         let proxy = self.proxy(for: object)
 
-        assert(proxy._forwardToDelegate() === nil, "This is a feature to warn you that there is already a delegate (or data source) set somewhere previously. The action you are trying to perform will clear that delegate (data source) and that means that some of your features that depend on that delegate (data source) being set will likely stop working.\n" +
+        assert(proxy.forwardToDelegate() === nil, "This is a feature to warn you that there is already a delegate (or data source) set somewhere previously. The action you are trying to perform will clear that delegate (data source) and that means that some of your features that depend on that delegate (data source) being set will likely stop working.\n" +
             "If you are ok with this, try to set delegate (data source) to `nil` in front of this operation.\n" +
             " This is the source object value: \(object)\n" +
-            " This is the original delegate (data source) value: \(proxy.forwardToDelegate()!)\n" +
+            " This this the original delegate (data source) value: \(proxy.forwardToDelegate()!)\n" +
             "Hint: Maybe delegate was already set in xib or storyboard and now it's being overwritten in code.\n")
 
         proxy.setForwardToDelegate(forwardDelegate, retainDelegate: retainDelegate)
 
         return Disposables.create {
-            MainScheduler.ensureRunningOnMainThread()
+            MainScheduler.ensureExecutingOnScheduler()
 
             let delegate: AnyObject? = weakForwardDelegate
 
-            assert(delegate == nil || proxy._forwardToDelegate() === delegate, "Delegate was changed from time it was first set. Current \(String(describing: proxy.forwardToDelegate())), and it should have been \(proxy)")
+            assert(delegate == nil || proxy.forwardToDelegate() === delegate, "Delegate was changed from time it was first set. Current \(String(describing: proxy.forwardToDelegate())), and it should have been \(proxy)")
 
             proxy.setForwardToDelegate(nil, retainDelegate: retainDelegate)
         }
@@ -241,17 +225,19 @@ extension DelegateProxyType {
 
 
 // fileprivate extensions
-extension DelegateProxyType {
+extension DelegateProxyType
+{
     fileprivate static var factory: DelegateProxyFactory {
         return DelegateProxyFactory.sharedFactory(for: self)
     }
 
-    fileprivate static func assignedProxy(for object: ParentObject) -> AnyObject? {
+
+    fileprivate static func assignedProxy(for object: ParentObject) -> Delegate? {
         let maybeDelegate = objc_getAssociatedObject(object, self.identifier)
-        return castOptionalOrFatalError(maybeDelegate)
+        return castOptionalOrFatalError(maybeDelegate.map { $0 as AnyObject })
     }
 
-    fileprivate static func assignProxy(_ proxy: AnyObject, toObject object: ParentObject) {
+    fileprivate static func assignProxy(_ proxy: Delegate, toObject object: ParentObject) {
         objc_setAssociatedObject(object, self.identifier, proxy, .OBJC_ASSOCIATION_RETAIN)
     }
 }
@@ -259,7 +245,7 @@ extension DelegateProxyType {
 /// Describes an object that has a delegate.
 public protocol HasDelegate: AnyObject {
     /// Delegate type
-    associatedtype Delegate
+    associatedtype Delegate: AnyObject
 
     /// Delegate
     var delegate: Delegate? { get set }
@@ -278,7 +264,7 @@ extension DelegateProxyType where ParentObject: HasDelegate, Self.Delegate == Pa
 /// Describes an object that has a data source.
 public protocol HasDataSource: AnyObject {
     /// Data source type
-    associatedtype DataSource
+    associatedtype DataSource: AnyObject
 
     /// Data source
     var dataSource: DataSource? { get set }
@@ -294,35 +280,13 @@ extension DelegateProxyType where ParentObject: HasDataSource, Self.Delegate == 
     }
 }
 
-/// Describes an object that has a prefetch data source.
-@available(iOS 10.0, tvOS 10.0, *)
-public protocol HasPrefetchDataSource: AnyObject {
-    /// Prefetch data source type
-    associatedtype PrefetchDataSource
-
-    /// Prefetch data source
-    var prefetchDataSource: PrefetchDataSource? { get set }
-}
-
-@available(iOS 10.0, tvOS 10.0, *)
-extension DelegateProxyType where ParentObject: HasPrefetchDataSource, Self.Delegate == ParentObject.PrefetchDataSource {
-    public static func currentDelegate(for object: ParentObject) -> Delegate? {
-        return object.prefetchDataSource
-    }
-
-    public static func setCurrentDelegate(_ delegate: Delegate?, to object: ParentObject) {
-        object.prefetchDataSource = delegate
-    }
-}
-
     #if os(iOS) || os(tvOS)
         import UIKit
 
         extension ObservableType {
-            func subscribeProxyDataSource<DelegateProxy: DelegateProxyType>(ofObject object: DelegateProxy.ParentObject, dataSource: DelegateProxy.Delegate, retainDataSource: Bool, binding: @escaping (DelegateProxy, Event<Element>) -> Void)
+            func subscribeProxyDataSource<DelegateProxy: DelegateProxyType>(ofObject object: DelegateProxy.ParentObject, dataSource: DelegateProxy.Delegate, retainDataSource: Bool, binding: @escaping (DelegateProxy, Event<E>) -> Void)
                 -> Disposable
-                where DelegateProxy.ParentObject: UIView
-                , DelegateProxy.Delegate: AnyObject {
+                where DelegateProxy.ParentObject: UIView {
                 let proxy = DelegateProxy.proxy(for: object)
                 let unregisterDelegate = DelegateProxy.installForwardDelegate(dataSource, retainDelegate: retainDataSource, onProxyForObject: object)
                 // this is needed to flush any delayed old state (https://github.com/RxSwiftCommunity/RxDataSources/pull/75)
@@ -337,7 +301,7 @@ extension DelegateProxyType where ParentObject: HasPrefetchDataSource, Self.Dele
                     // source can never end, otherwise it would release the subscriber, and deallocate the data source
                     .concat(Observable.never())
                     .takeUntil(object.rx.deallocated)
-                    .subscribe { [weak object] (event: Event<Element>) in
+                    .subscribe { [weak object] (event: Event<E>) in
 
                         if let object = object {
                             assert(proxy === DelegateProxy.currentDelegate(for: object), "Proxy changed from the time it was first set.\nOriginal: \(proxy)\nExisting: \(String(describing: DelegateProxy.currentDelegate(for: object)))")
@@ -383,7 +347,7 @@ extension DelegateProxyType where ParentObject: HasPrefetchDataSource, Self.Dele
         private static var _sharedFactories: [UnsafeRawPointer: DelegateProxyFactory] = [:]
 
         fileprivate static func sharedFactory<DelegateProxy: DelegateProxyType>(for proxyType: DelegateProxy.Type) -> DelegateProxyFactory {
-            MainScheduler.ensureRunningOnMainThread()
+            MainScheduler.ensureExecutingOnScheduler()
             let identifier = DelegateProxy.identifier
             if let factory = _sharedFactories[identifier] {
                 return factory
@@ -399,25 +363,27 @@ extension DelegateProxyType where ParentObject: HasPrefetchDataSource, Self.Dele
         private var _identifier: UnsafeRawPointer
 
         private init<DelegateProxy: DelegateProxyType>(for proxyType: DelegateProxy.Type) {
-            self._factories = [:]
-            self._delegateProxyType = proxyType
-            self._identifier = proxyType.identifier
+            _factories = [:]
+            _delegateProxyType = proxyType
+            _identifier = proxyType.identifier
         }
 
-        fileprivate func extend<DelegateProxy: DelegateProxyType, ParentObject>(make: @escaping (ParentObject) -> DelegateProxy) {
-                MainScheduler.ensureRunningOnMainThread()
-                precondition(self._identifier == DelegateProxy.identifier, "Delegate proxy has inconsistent identifier")
-                guard self._factories[ObjectIdentifier(ParentObject.self)] == nil else {
+        fileprivate func extend<DelegateProxy: DelegateProxyType, ParentObject>(make: @escaping (ParentObject) -> DelegateProxy)
+           {
+                MainScheduler.ensureExecutingOnScheduler()
+                precondition(_identifier == DelegateProxy.identifier, "Delegate proxy has inconsistent identifier")
+                precondition((DelegateProxy.self as? DelegateProxy.Delegate) != nil, "DelegateProxy subclass should be as a Delegate")
+                guard _factories[ObjectIdentifier(ParentObject.self)] == nil else {
                     rxFatalError("The factory of \(ParentObject.self) is duplicated. DelegateProxy is not allowed of duplicated base object type.")
                 }
-                self._factories[ObjectIdentifier(ParentObject.self)] = { make(castOrFatalError($0)) }
+                _factories[ObjectIdentifier(ParentObject.self)] = { make(castOrFatalError($0)) }
         }
 
         fileprivate func createProxy(for object: AnyObject) -> AnyObject {
-            MainScheduler.ensureRunningOnMainThread()
+            MainScheduler.ensureExecutingOnScheduler()
             var maybeMirror: Mirror? = Mirror(reflecting: object)
             while let mirror = maybeMirror {
-                if let factory = self._factories[ObjectIdentifier(mirror.subjectType)] {
+                if let factory = _factories[ObjectIdentifier(mirror.subjectType)] {
                     return factory(object)
                 }
                 maybeMirror = mirror.superclassMirror

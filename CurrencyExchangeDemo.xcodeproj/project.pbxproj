@@ -13,6 +13,7 @@
 		3A1EDB1F229AB4490064CDB6 /* CurrencyExchangeDemo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3A1EDB1D229AB4490064CDB6 /* CurrencyExchangeDemo.xcdatamodeld */; };
 		3A1EDB21229AB44E0064CDB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A1EDB20229AB44E0064CDB6 /* Assets.xcassets */; };
 		3A1EDB24229AB44E0064CDB6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A1EDB22229AB44E0064CDB6 /* LaunchScreen.storyboard */; };
+		3A7F569C229B39C60080CCD0 /* Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7F569B229B39C60080CCD0 /* Currency.swift */; };
 		4A9E2BEF229AF2560027C38D /* VCDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9E2BEE229AF2560027C38D /* VCDelegate.swift */; };
 		4A9E2BF1229AF2730027C38D /* Persenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9E2BF0229AF2730027C38D /* Persenter.swift */; };
 		4A9E2BF3229AF28B0027C38D /* PresenterDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9E2BF2229AF28B0027C38D /* PresenterDelegate.swift */; };
@@ -32,6 +33,7 @@
 		3A1EDB20229AB44E0064CDB6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3A1EDB23229AB44E0064CDB6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3A1EDB25229AB44E0064CDB6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3A7F569B229B39C60080CCD0 /* Currency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency.swift; sourceTree = "<group>"; };
 		4A9E2BEE229AF2560027C38D /* VCDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VCDelegate.swift; sourceTree = "<group>"; };
 		4A9E2BF0229AF2730027C38D /* Persenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persenter.swift; sourceTree = "<group>"; };
 		4A9E2BF2229AF28B0027C38D /* PresenterDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenterDelegate.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		3A1EDB15229AB4490064CDB6 /* CurrencyExchangeDemo */ = {
 			isa = PBXGroup;
 			children = (
+				3A7F569A229B38020080CCD0 /* Model */,
 				4A9E2BED229AF1F50027C38D /* Service */,
 				4A9E2BEC229AF1E80027C38D /* Presenter */,
 				4A9E2BEB229AF1DA0027C38D /* View */,
@@ -92,6 +95,14 @@
 				3A1EDB1D229AB4490064CDB6 /* CurrencyExchangeDemo.xcdatamodeld */,
 			);
 			path = CurrencyExchangeDemo;
+			sourceTree = "<group>";
+		};
+		3A7F569A229B38020080CCD0 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				3A7F569B229B39C60080CCD0 /* Currency.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		4A9E2BEB229AF1DA0027C38D /* View */ = {
@@ -204,15 +215,11 @@
 			buildActionMask = 2147483647;
 			files = (
 			);
-			inputFileListPaths = (
-			);
 			inputPaths = (
 				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
 				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-CurrencyExchangeDemo-checkManifestLockResult.txt",
 			);
@@ -226,24 +233,18 @@
 			buildActionMask = 2147483647;
 			files = (
 			);
-			inputFileListPaths = (
-			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-CurrencyExchangeDemo/Pods-CurrencyExchangeDemo-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/RxAlamofire/RxAlamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/RxCocoa/RxCocoa.framework",
-				"${BUILT_PRODUCTS_DIR}/RxRelay/RxRelay.framework",
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-			);
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxAlamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxCocoa.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxRelay.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -258,6 +259,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A7F569C229B39C60080CCD0 /* Currency.swift in Sources */,
 				4A9E2BF1229AF2730027C38D /* Persenter.swift in Sources */,
 				4A9E2BF3229AF28B0027C38D /* PresenterDelegate.swift in Sources */,
 				3A1EDB19229AB4490064CDB6 /* ViewController.swift in Sources */,

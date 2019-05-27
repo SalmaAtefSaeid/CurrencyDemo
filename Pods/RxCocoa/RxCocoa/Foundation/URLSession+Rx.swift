@@ -24,7 +24,9 @@ import var Foundation.NSURLErrorDomain
     import Foundation
 #endif
 
+#if !RX_NO_MODULE
 import RxSwift
+#endif
 
 /// RxCocoa URL errors.
 public enum RxCocoaURLError
@@ -56,7 +58,7 @@ extension RxCocoaURLError
     }
 }
 
-private func escapeTerminalString(_ value: String) -> String {
+fileprivate func escapeTerminalString(_ value: String) -> String {
     return value.replacingOccurrences(of: "\"", with: "\\\"", options:[], range: nil)
 }
 
@@ -86,7 +88,7 @@ fileprivate func convertURLRequestToCurlCommand(_ request: URLRequest) -> String
     return returnValue
 }
 
-private func convertResponseToString(_ response: URLResponse?, _ error: NSError?, _ interval: TimeInterval) -> String {
+fileprivate func convertResponseToString(_ response: URLResponse?, _ error: NSError?, _ interval: TimeInterval) -> String {
     let ms = Int(interval * 1000)
 
     if let response = response as? HTTPURLResponse {
@@ -134,13 +136,13 @@ extension Reactive where Base: URLSession {
                d = nil
             }
 
-            let task = self.base.dataTask(with: request) { data, response, error in
+            let task = self.base.dataTask(with: request) { (data, response, error) in
 
                 if Logging.URLRequests(request) {
                     let interval = Date().timeIntervalSince(d ?? Date())
                     print(convertURLRequestToCurlCommand(request))
                     #if os(Linux)
-                        print(convertResponseToString(response, error.flatMap { $0 as NSError }, interval))
+                        print(convertResponseToString(response, error.flatMap { $0 as? NSError }, interval))
                     #else
                         print(convertResponseToString(response, error.map { $0 as NSError }, interval))
                     #endif
@@ -182,7 +184,7 @@ extension Reactive where Base: URLSession {
     - returns: Observable sequence of response data.
     */
     public func data(request: URLRequest) -> Observable<Data> {
-        return self.response(request: request).map { pair -> Data in
+        return response(request: request).map { pair -> Data in
             if 200 ..< 300 ~= pair.0.statusCode {
                 return pair.1
             }
@@ -210,7 +212,7 @@ extension Reactive where Base: URLSession {
     - returns: Observable sequence of response JSON.
     */
     public func json(request: URLRequest, options: JSONSerialization.ReadingOptions = []) -> Observable<Any> {
-        return self.data(request: request).map { data -> Any in
+        return data(request: request).map { (data) -> Any in
             do {
                 return try JSONSerialization.jsonObject(with: data, options: options)
             } catch let error {
@@ -237,7 +239,7 @@ extension Reactive where Base: URLSession {
     - returns: Observable sequence of response JSON.
     */
     public func json(url: Foundation.URL) -> Observable<Any> {
-        return self.json(request: URLRequest(url: url))
+        return json(request: URLRequest(url: url))
     }
 }
 

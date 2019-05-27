@@ -6,7 +6,9 @@
 //  Copyright © 2016 Krunoslav Zaher. All rights reserved.
 //
 
-import RxSwift
+#if !RX_NO_MODULE
+    import RxSwift
+#endif
 
 #if os(iOS) || os(tvOS)
     import UIKit
@@ -69,7 +71,7 @@ import RxSwift
     extension Reactive where Base: NSTextField, Base: NSTextInputClient {
         /// Reactive text input.
         public var textInput: TextInput<Base> {
-            return TextInput(base: self.base, text: self.text)
+            return TextInput(base: base, text: self.text)
         }
     }
 

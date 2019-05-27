@@ -7,9 +7,11 @@
 //
 
 #if os(iOS) || os(tvOS)
-
 import UIKit
+    
+#if !RX_NO_MODULE
 import RxSwift
+#endif
     
 /**
  iOS only

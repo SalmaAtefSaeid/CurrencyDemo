@@ -9,7 +9,9 @@
 #if os(iOS) || os(tvOS)
 
 import UIKit
+#if !RX_NO_MODULE
 import RxSwift
+#endif
 
 extension Reactive where Base: UITextView {
     /// Reactive wrapper for `text` property
@@ -91,7 +93,7 @@ extension Reactive where Base: UITextView {
     /// Reactive wrapper for `delegate` message.
     public var didBeginEditing: ControlEvent<()> {
        return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextViewDelegate.textViewDidBeginEditing(_:)))
-            .map { _ in
+            .map { a in
                 return ()
             })
     }
@@ -99,7 +101,7 @@ extension Reactive where Base: UITextView {
     /// Reactive wrapper for `delegate` message.
     public var didEndEditing: ControlEvent<()> {
         return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextViewDelegate.textViewDidEndEditing(_:)))
-            .map { _ in
+            .map { a in
                 return ()
             })
     }
@@ -107,7 +109,7 @@ extension Reactive where Base: UITextView {
     /// Reactive wrapper for `delegate` message.
     public var didChange: ControlEvent<()> {
         return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextViewDelegate.textViewDidChange(_:)))
-            .map { _ in
+            .map { a in
                 return ()
             })
     }
@@ -115,7 +117,7 @@ extension Reactive where Base: UITextView {
     /// Reactive wrapper for `delegate` message.
     public var didChangeSelection: ControlEvent<()> {
         return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextViewDelegate.textViewDidChangeSelection(_:)))
-            .map { _ in
+            .map { a in
                 return ()
             })
     }

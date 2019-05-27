@@ -6,8 +6,9 @@
 //  Copyright © 2017 Krunoslav Zaher. All rights reserved.
 //
 
-import RxSwift
-import RxRelay
+#if !RX_NO_MODULE
+    import RxSwift
+#endif
 
 extension PublishRelay {
     /// Converts `PublishRelay` to `Signal`.

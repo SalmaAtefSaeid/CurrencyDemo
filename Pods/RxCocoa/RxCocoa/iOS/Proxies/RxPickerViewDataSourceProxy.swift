@@ -8,16 +8,18 @@
 
 #if os(iOS)
 
-import UIKit
-import RxSwift
+    import UIKit
+#if !RX_NO_MODULE
+    import RxSwift
+#endif
 
 extension UIPickerView: HasDataSource {
     public typealias DataSource = UIPickerViewDataSource
 }
 
-private let pickerViewDataSourceNotSet = PickerViewDataSourceNotSet()
+fileprivate let pickerViewDataSourceNotSet = PickerViewDataSourceNotSet()
 
-final private class PickerViewDataSourceNotSet: NSObject, UIPickerViewDataSource {
+final fileprivate class PickerViewDataSourceNotSet: NSObject, UIPickerViewDataSource {
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 0
     }
