@@ -7,3 +7,10 @@
 //
 
 import Foundation
+
+protocol VCDelegate {
+    
+    func setCurrienciesList(rateList: [Rate])
+    func showError()
+    
+}

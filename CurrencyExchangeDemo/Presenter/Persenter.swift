@@ -7,3 +7,32 @@
 //
 
 import Foundation
+
+class Presenter: PresenterDelegate {
+    
+    var network : NetworkDelegate = Network()
+    var viewController : VCDelegate?
+    
+    init() {
+        network.setDelegate(delegate: self)
+    }
+    
+    func setDelegate(delegate: VCDelegate) {
+        
+        viewController = delegate
+    }
+    
+    func connectToApi(){
+        
+        network.connect()
+    }
+    
+    func getCurrencies(rateList: [Rate]){
+        
+        viewController?.setCurrienciesList(rateList: rateList)
+    }
+    func getError(){
+        
+        viewController?.showError()
+    }
+}

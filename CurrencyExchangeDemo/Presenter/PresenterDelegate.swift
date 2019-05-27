@@ -7,3 +7,12 @@
 //
 
 import Foundation
+
+protocol PresenterDelegate {
+    
+    func setDelegate(delegate: VCDelegate)
+    func connectToApi()
+    func getCurrencies(rateList: [Rate])
+    func getError()
+    
+}

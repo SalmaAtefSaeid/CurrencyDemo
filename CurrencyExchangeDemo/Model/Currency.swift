@@ -10,8 +10,15 @@ import Foundation
 
 // MARK: - Currency
 struct Currency: Codable {
+    
     let base: String
     let rates: [String: Double]
     let date: String
+    
+    init(base: String, rates: [String: Double], date: String) {
+        self.base = base
+        self.rates = rates
+        self.date = date
+    }
 }
 

@@ -9,5 +9,9 @@
 import Foundation
 
 protocol NetworkDelegate {
-    func connect() 
+    
+    func connect()
+    func setDelegate(delegate: PresenterDelegate)
+    func convertToRateList(currency: Currency) -> [Rate]
+    
 }
