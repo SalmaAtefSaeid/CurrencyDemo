@@ -21,20 +21,21 @@ class Network: NetworkDelegate{
     }
     func connect() {
         
-            RxAlamofire.requestJSON(.get, "https://api.exchangeratesapi.io/latest")
-                .debug()
-                .subscribe(onNext: { [weak self] (r, json) in
-                    if let responce = json as? [String: AnyObject] {
-                        let currency = Currency(base: responce["base"] as! String, rates: responce["rates"] as! [String : Double], date: responce["date"] as! String)
+        RxAlamofire.requestJSON(.get, "https://api.exchangeratesapi.io/latest")
+            .subscribe(onNext: { [weak self] (r, json) in
+                if let responce = json as? [String: AnyObject] {
+                    do{
+                        let jsonResponce = try JSONSerialization.data(withJSONObject: responce, options: .prettyPrinted)
+                        let currency = try JSONDecoder().decode( Currency.self, from: jsonResponce)
                         let currencyList = self?.convertToRateList(currency: currency)
                         self?.presenter?.getCurrencies(rateList: currencyList!)
-                    }
-                    }, onError: { [weak self] (error) in
+                    } catch let error{
                         print(error.localizedDescription)
                         self?.presenter?.getError()
-                    })
-                .disposed(by: disposeBag)
-
+                    }
+                }
+                })
+            .disposed(by: disposeBag)
     }
     
     func convertToRateList(currency: Currency) -> [Rate]{
